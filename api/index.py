@@ -1,0 +1,50 @@
+[{"name":"n","marks":56},{"name":"ULkaN","marks":9},{"name":"r","marks":23},{"name":"tpg1lB","marks":96},{"name":"Th0","marks":15},{"name":"c","marks":86},{"name":"v","marks":83},{"name":"O","marks":84},{"name":"q6UYrSupRv","marks":25},{"name":"Wx5z6lw4yR","marks":53},{"name":"dSDt0","marks":91},{"name":"CBr","marks":24},{"name":"PimGRlys","marks":75},{"name":"kMCe8aHMag","marks":51},{"name":"lE","marks":26},{"name":"H9","marks":28},{"name":"3IdItsLFzj","marks":10},{"name":"I00","marks":28},{"name":"F","marks":57},{"name":"BA40pU1VpA","marks":19},{"name":"RYIKogGgW","marks":25},{"name":"ycrOYSmI2a","marks":84},{"name":"4","marks":19},{"name":"x","marks":95},{"name":"NQT01ai7iv","marks":44},{"name":"QCB","marks":44},{"name":"nXb","marks":74},{"name":"9Ek1Xeiwm","marks":71},{"name":"pS","marks":92},{"name":"e","marks":84},{"name":"kpnkIZJeI","marks":18},{"name":"Yu1K","marks":95},{"name":"2jwjNbG","marks":10},{"name":"H0","marks":2},{"name":"0lwO98SE","marks":46},{"name":"y","marks":20},{"name":"BJUYZlkZW","marks":49},{"name":"JKpjUf","marks":6},{"name":"otyrc0","marks":63},{"name":"ZGDjEj","marks":57},{"name":"NhIGzz0z7","marks":65},{"name":"T","marks":11},{"name":"DlmI","marks":33},{"name":"ZFWcEkAX","marks":15},{"name":"1ABtJd0","marks":95},{"name":"7dQZu","marks":26},{"name":"1EM","marks":38},{"name":"0kIu8WAwn","marks":35},{"name":"mH4ao","marks":72},{"name":"yhELOM","marks":30},{"name":"94uXS","marks":95},{"name":"uyM6Djd","marks":48},{"name":"5GXcx","marks":61},{"name":"77Dlkeng","marks":3},{"name":"HnNKRJSV","marks":5},{"name":"0","marks":13},{"name":"ceecrX","marks":80},{"name":"TMi","marks":89},{"name":"I","marks":48},{"name":"ldXz4w9t","marks":49},{"name":"lZy10F8","marks":92},{"name":"j","marks":25},{"name":"RUIO5gLY0","marks":7},{"name":"Os4Q","marks":41},{"name":"feJAOipsEb","marks":54},{"name":"FB","marks":21},{"name":"d","marks":90},{"name":"qcFUmrSa","marks":89},{"name":"V5oDIi8id","marks":70},{"name":"GdpGskRWZK","marks":56},{"name":"g3BNvkxZz1","marks":80},{"name":"i1Mh2rUIz","marks":60},{"name":"huxH","marks":99},{"name":"Sj8G","marks":51},{"name":"gPquRn","marks":32},{"name":"bIeDzKvb","marks":93},{"name":"j0H8UYEWaK","marks":72},{"name":"X3yF","marks":74},{"name":"WcWWHb","marks":93},{"name":"zCcFZRY","marks":83},{"name":"m1lSc","marks":75},{"name":"ub4sxHrHPh","marks":21},{"name":"mpI","marks":25},{"name":"MwhKp3tNL","marks":92},{"name":"usgv1jK","marks":1},{"name":"fcz8gb4RH","marks":47},{"name":"k","marks":21},{"name":"zUmxH1GD","marks":77},{"name":"Q","marks":24},{"name":"KST546R","marks":21},{"name":"9HIr","marks":89},{"name":"s4ePLTvA","marks":15},{"name":"V","marks":65},{"name":"PbRe4SSPS","marks":20},{"name":"s4z","marks":73},{"name":"W","marks":89},{"name":"1c","marks":61},{"name":"U","marks":69},{"name":"8","marks":68},{"name":"ZzYrkE","marks":59}]from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
+from typing import List
+import json
+import os
+
+# Initialize FastAPI app
+app = FastAPI()
+
+# Enable CORS for all origins
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=True,
+    allow_methods=["GET"],  # Only allow GET requests
+    allow_headers=["*"],
+)
+
+# Get the directory of the current file
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# Load student marks data from the same directory as this file
+with open(os.path.join(current_dir, 'q-vercel-python.json')) as f:
+    students_data = json.load(f)
+
+@app.get("/api")
+async def get_marks(name: List[str] = Query(None)):
+    """
+    Get marks for one or more students by name.
+    Example: /api?name=John&name=Alice
+    """
+    if not name:
+        return {"error": "Please provide at least one name"}
+    
+    marks = []
+    for student_name in name:
+        # Look for the student in the data
+        mark = next((student["marks"] for student in students_data 
+                     if student["name"].lower() == student_name.lower()), None)
+        marks.append(mark)
+    
+    return {"marks": marks}
+
+@app.get("/")
+async def root():
+    return {"message": "Student Marks API. Use /api?name=X&name=Y to get marks."}
+
+# This allows running the app with Uvicorn directly
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("index:app", host="0.0.0.0", port=8000, reload=True)
